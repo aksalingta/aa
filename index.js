@@ -230,3 +230,11 @@ bot.on('callback_query', async (callbackQuery) => {
     console.error('Ошибка при обработке callback:', err);
   }
 });
+
+// ====== Express-фиктивный сервер для Render ======
+const express = require('express');
+const app = express();
+
+const PORT = process.env.PORT || 3000;
+app.get('/', (req, res) => res.send('Бот Telegram работает!'));
+app.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
