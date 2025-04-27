@@ -3,7 +3,7 @@ require('dotenv').config();
 
 const token = process.env.BOT_TOKEN;
 const MODERATION_CHANNEL_ID = '@Nmsssssssdasdasdasd';
-const POSTS_CHANNEL_ID = '@NM_Nizhnevartovsk';
+const POSTS_CHANNEL_ID = '@NM_Nizhnevartovsk'; // <-- сюда твой канал
 const REJECTION_CHANNEL_ID = '@sckghe';
 
 const bot = new TelegramBot(token, { polling: true });
@@ -11,21 +11,58 @@ const bot = new TelegramBot(token, { polling: true });
 const userStates = {};
 const posts = {};
 
-bot.onText(/\/start/, (msg) => {
+// Отправка приветственного сообщения с ФОТО и закрепление
+async function sendWelcomeMessage() {
+  try {
+    const welcomeCaption = `НАЙДИ МЕНЯ | НИЖНЕВАРТОВСК
+
+🔹 Увидел(а) кого-то особенного в городе?
+🔹 Не успел(а) познакомиться?
+
+Просто отправь фото (если есть) и опиши ситуацию!
+
+Мы поможем тебе найти этого человека.
+
+⚡ Публикация возможна анонимно.`;
+
+    const sentMessage = await bot.sendPhoto(POSTS_CHANNEL_ID, 'AgACAgIAAxkBAAIFmWgL5lC3LBN3uLNl8DIHxSOQJaPUAAI19zEbd-xgSHcsx8t0dXqvAQADAgADdwADNgQ', {
+      caption: welcomeCaption,
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: '💌 Предложить пост', url: `https://t.me/Nizhnevartovskbot_bot?start=proposal` }
+          ]
+        ]
+      }
+    });
+
+    await bot.pinChatMessage(POSTS_CHANNEL_ID, sentMessage.message_id, { disable_notification: true });
+    console.log('Приветственное сообщение с фото отправлено и закреплено.');
+  } catch (err) {
+    console.error('Ошибка при отправке приветственного сообщения:', err);
+  }
+}
+
+// Вызываем отправку сразу после запуска бота
+sendWelcomeMessage();
+
+bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
   const username = msg.from.username;
 
   if (!username) {
     return bot.sendMessage(chatId,
       `❗ Чтобы пользоваться ботом, нужно установить имя пользователя (username) в Telegram.\n\n` +
-      `Это нужно, чтобы с вами могли связаться при необходимости. Мы не передаём ваш username без вашего согласия.\n\n` +
       `👉 Как установить:\n1. Откройте Telegram\n2. Перейдите в "Настройки"\n3. Нажмите "Имя пользователя"\n4. Установите уникальный @username\n\n` +
       `После этого снова напишите /start.`
     );
   }
 
-  bot.sendMessage(chatId, `Привет! Ищешь человека, которого мимолетно увидел где-то и не познакомился в связи с обстоятельствами?\n\nНайти человека можно в Телеграмм канале, подробно опишите свою историю, желательно прикрепить фото и "Предложить запись" чтобы отправить поиск.`);
-  bot.sendMessage(chatId, 'Нажмите кнопку ниже, чтобы предложить запись.', {
+  await bot.sendPhoto(chatId, 'AgACAgIAAxkBAAIFmWgL5lC3LBN3uLNl8DIHxSOQJaPUAAI19zEbd-xgSHcsx8t0dXqvAQADAgADdwADNgQ', {
+    caption: `Привет! 👋\n\nИщешь человека, которого мимолетно увидел где-то и не познакомился?\n\n✅ Подробно опиши свою историю\n✅ Прикрепи фото (если есть)\n✅ Нажми "Предложить запись", чтобы отправить поиск.`,
+  });
+
+  await bot.sendMessage(chatId, 'Нажмите кнопку ниже, чтобы предложить запись.', {
     reply_markup: {
       keyboard: [['Предложить запись']],
       resize_keyboard: true,
@@ -46,7 +83,7 @@ bot.on('message', async (msg) => {
         description: '',
       },
     };
-    await bot.sendMessage(chatId, 'Прикрепите фото или видео (по желанию) и подробно опишите свою историю. ❗ Если хотите чтоб пост опубликовался анонимно пишите анон ❗.', {
+    await bot.sendMessage(chatId, 'Прикрепите фото или видео (по желанию) и подробно опишите свою историю. ❗ Если хотите чтоб пост опубликовался анонимно пишите "анон" ❗.', {
       reply_markup: { remove_keyboard: true },
     });
     return;
@@ -138,9 +175,14 @@ bot.on('callback_query', async (callbackQuery) => {
     const { postData, userId, username } = postEntry;
 
     const replyMarkup = {
-      inline_keyboard: [[
-        { text: "💌 Предложить пост", url: `https://t.me/Nizhnevartovskbot_bot?start=proposal` }
-      ]]
+      inline_keyboard: [
+        [
+          { text: '💬 Прокомментировать', url: 'https://t.me/chatNMN' }, // <-- сюда свою ссылку на чат
+        ],
+        [
+          { text: '💌 Предложить пост', url: `https://t.me/Nizhnevartovskbot_bot?start=proposal` }
+        ]
+      ]
     };
 
     switch (data) {
