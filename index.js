@@ -230,4 +230,4 @@ bot.on('callback_query', async (callbackQuery) => {
   } catch (err) {
     console.error('Ошибка при обработке callback:', err);
   }
-});1
+});
